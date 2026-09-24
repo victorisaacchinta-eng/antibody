@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antibody · Load Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Inter:opsz,wght@14..32,400;14..32,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --card:#0a0a0a; --muted:#999; --faint:#666; --line:rgba(255,255,255,.145); --line2:rgba(255,255,255,.08);
+  --accent:#52a8ff; --ok:#62c073; --fail:#ededed; --chip:#1f1f1f;
+  --display:"Inter Display","Inter",ui-sans-serif,system-ui,sans-serif;
+  --sans:"Geist","Inter",ui-sans-serif,system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:#000;color:#fff;font:14px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.label{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+header{height:68px;display:flex;align-items:center;gap:28px;padding:0 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#000;z-index:5}
+.brand{display:flex;align-items:center;gap:10px}
+.brand b{font:500 20px var(--display);letter-spacing:-.4px}
+.brand span{font:12px var(--mono);color:var(--muted)}
+nav{display:flex;box-shadow:0 0 0 1px var(--line);margin-left:auto}
+nav a{padding:8px 14px;font:500 13px var(--sans);color:var(--muted)}
+nav a:hover{color:#fff}
+nav a[aria-current=page]{background:#fff;color:#121212}
+
+main{display:grid;grid-template-columns:420px minmax(0,1fr);gap:16px;padding:16px;align-items:start}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--card);box-shadow:0 0 0 1px var(--line);padding:18px}
+.card h2{margin:0 0 2px;font:500 15px var(--sans);letter-spacing:-.2px;display:flex;align-items:center;gap:10px}
+.card .sub{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.step{font:500 11px var(--mono);color:var(--accent)}
+
+label.f{display:block;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+input[type=text],input[type=number],textarea,select{width:100%;font:13px/1.5 var(--mono);color:#fff;background:#000;border:0;box-shadow:0 0 0 1px var(--line);border-radius:0;padding:8px 10px}
+input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 1px var(--accent)}
+textarea{resize:vertical;min-height:64px}
+.inline{display:flex;gap:8px}
+.inline select{width:96px;flex:none}
+.seg{display:flex;box-shadow:0 0 0 1px var(--line)}
+.seg button{flex:1;border:0;background:none;padding:8px 10px;font:500 13px var(--sans);color:var(--muted)}
+.seg button[aria-pressed=true]{background:#fff;color:#121212}
+.switch{display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer}
+.switch input{appearance:none;width:34px;height:20px;border-radius:100px;background:var(--chip);box-shadow:0 0 0 1px var(--line);position:relative;margin:0;cursor:pointer;transition:background .2s}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#999;transition:transform .2s,background .2s}
+.switch input:checked{background:var(--accent)}
+.switch input:checked::after{transform:translateX(14px);background:#fff}
+.vars{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border-radius:100px;padding:3px 10px;font:500 12px var(--mono);color:#e7e7e7;border:0}
+button.chip:hover{background:#2a2a2a}
+.chip.ok{color:var(--ok)} .chip.bad{color:var(--fail);box-shadow:0 0 0 1px rgba(237,237,237,.4)}
+.hint{font-size:12px;color:var(--faint);margin-top:6px}
+.range{display:flex;align-items:center;gap:12px}
+.range input{flex:1;accent-color:var(--accent)}
+.range output{font:500 13px var(--mono);width:32px;text-align:right}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:0;background:#fff;color:#121212;padding:10px 16px;font:500 15px/1 var(--sans);border:1px solid #fff;transition:background .15s}
+.btn:hover{background:#e7e7e7}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:#fff;border-color:var(--line)}
+.btn.ghost:hover{border-color:#fff}
+.btn.sm{font-size:13px;padding:6px 10px}
+.runbar{display:flex;align-items:center;gap:12px;margin-top:16px}
+.total{font:12.5px var(--mono);color:var(--muted)}
+
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);box-shadow:0 0 0 1px var(--line)}
+.kpi{background:var(--card);padding:16px}
+.kpi .v{font:500 26px/1.1 var(--mono);letter-spacing:-.8px;margin-top:6px;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:13px;color:var(--muted);letter-spacing:0}
+.kpi.hero .v{color:var(--accent)}
+.progress{height:2px;background:var(--line2);margin-top:14px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.statusline{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);display:inline-block}
+.dot.live{background:var(--accent);animation:breathe 1.2s ease-in-out infinite}
+.dot.done{background:var(--ok)}
+@keyframes breathe{50%{opacity:.35}}
+
+svg#chart{width:100%;height:220px;display:block}
+.axis{font:10.5px var(--mono);fill:var(--faint)}
+.legend{display:flex;gap:16px;font:11.5px var(--mono);color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+th.r,td.r{text-align:right}
+td.l{text-align:left}
+.tablewrap{max-height:340px;overflow:auto}
+.empty{color:var(--faint);font-size:13px;padding:28px 0;text-align:center}
+
+pre{margin:0;font:12px/1.55 var(--mono);color:#e7e7e7;background:#000;box-shadow:0 0 0 1px var(--line2);padding:12px;overflow:auto;max-height:260px;white-space:pre-wrap;word-break:break-all}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.err{color:var(--fail);font:12.5px var(--mono);margin-top:10px}
+.tip{display:flex;gap:12px;align-items:flex-start;font-size:13px;color:var(--muted)}
+.tip b{color:#fff;font-weight:500}
+
+@media (max-width:1000px){main{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.pair{grid-template-columns:1fr}}
+@media (max-width:560px){header{gap:12px;padding:0 16px}.brand span{display:none}main{padding:16px 16px}.kpis{grid-template-columns:repeat(2,1fr)}nav a{padding:8px 10px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/" aria-label="Antibody overview">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="13" cy="13" r="3.6" fill="#52a8ff"/><path d="M13 2v5M13 19v5M2 13h5M19 13h5" stroke="#fff" stroke-width="1.6"/></svg>
+    <div><b>antibody</b><br><span>api load test</span></div>
+  </a>
+  <nav aria-label="Pages">
+    <a href="/">Overview</a>
+    <a href="/console">Console</a>
+    <a href="/loadtest" aria-current="page">Load test</a>
+  </nav>
+</header>
+
+<main>
+  <div class="col">
+    <section class="card">
+      <h2><span class="step">01</span>Target</h2>
+      <p class="sub">Where the virtual users send traffic</p>
+      <div class="seg" role="group" aria-label="Target">
+        <button type="button" aria-pressed="true" data-target="self">Demo API (this server)</button>
+        <button type="button" aria-pressed="false" data-target="custom">Custom URL</button>
+      </div>
+      <div id="customBox" hidden>
+        <label class="f" for="target">Base URL</label>
+        <input type="text" id="target" placeholder="https://api.example.com" autocomplete="off">
+        <p class="hint">Only enabled when running locally with ANTIBODY_ALLOW_EXTERNAL_LOADTEST=1, so the public demo can't be used to flood other sites.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">02</span>Authentication</h2>
+      <p class="sub">Every virtual user logs in and gets its own bearer token, bound to its device token</p>
+      <label class="switch"><input type="checkbox" id="authOn" checked> Log in each user before the test</label>
+      <div id="authBox">
+        <label class="f" for="loginPath">Login endpoint (POST)</label>
+        <input type="text" id="loginPath" value="/api/demo/auth/login">
+        <label class="f" for="loginBody">Login body</label>
+        <textarea id="loginBody" rows="3">{"name":"{{name}}","email":"{{email}}","device_token":"{{device_token}}"}</textarea>
+        <label class="f" for="tokenField">Token field in response</label>
+        <input type="text" id="tokenField" value="access_token">
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">03</span>Request under test</h2>
+      <p class="sub">Sent by every user after login. Variables are filled per user.</p>
+      <div class="inline">
+        <select id="method" aria-label="Method"><option>POST</option><option>GET</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select>
+        <input type="text" id="path" value="/api/demo/orders" aria-label="Path">
+      </div>
+      <label class="f" for="headers">Headers</label>
+      <textarea id="headers" rows="2">Authorization: Bearer {{token}}
+X-Device-Token: {{device_token}}</textarea>
+      <label class="f" for="body">Body</label>
+      <textarea id="body" rows="2">{"item":"sku-{{i}}","qty":1}</textarea>
+      <div class="vars" aria-label="Available variables">
+        <span class="label" style="align-self:center">Variables</span>
+        <span class="chip">{{name}}</span><span class="chip">{{email}}</span><span class="chip">{{device_token}}</span><span class="chip">{{token}}</span><span class="chip">{{i}}</span>
+      </div>
+      <div class="vars" style="margin-top:12px">
+        <span class="label" style="align-self:center">Presets</span>
+        <button type="button" class="chip" data-preset="orders">POST /orders</button>
+        <button type="button" class="chip" data-preset="profile">GET /profile</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">04</span>Test data</h2>
+      <p class="sub">One virtual user per line: name, email, device token</p>
+      <textarea id="users" rows="7" spellcheck="false"></textarea>
+      <div class="vars" id="userStats"></div>
+      <div class="runbar" style="margin-top:12px">
+        <input type="number" id="genN" value="20" min="1" max="200" style="width:80px" aria-label="Users to generate">
+        <button type="button" class="btn ghost sm" id="gen">Generate users</button>
+        <button type="button" class="btn ghost sm" id="addBad">Add a bad credential</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">05</span>Load profile</h2>
+      <label class="f" for="rpu">Requests per user</label>
+      <div class="range"><input type="range" id="rpu" min="1" max="50" value="10"><output id="rpuV">10</output></div>
+      <label class="f" for="conc">Concurrent users</label>
+      <div class="range"><input type="range" id="conc" min="1" max="50" value="20"><output id="concV">20</output></div>
+      <div class="runbar">
+        <button type="button" class="btn" id="run">Run load test</button>
+        <button type="button" class="btn ghost" id="stop" hidden>Stop</button>
+        <span class="total" id="total"></span>
+      </div>
+      <div class="err" id="err" role="alert"></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="card">
+      <div class="statusline">
+        <h2 style="margin:0"><span class="dot" id="dot"></span><span id="stateText">Ready</span></h2>
+        <span class="total" id="meta">No run yet</span>
+      </div>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="kpis" style="margin-top:16px">
+        <div class="kpi"><div class="label">Requests</div><div class="v" id="k-req">0</div></div>
+        <div class="kpi hero"><div class="label">Success</div><div class="v" id="k-ok">–</div></div>
+        <div class="kpi"><div class="label">Throughput</div><div class="v" id="k-rps">0 <small>req/s</small></div></div>
+        <div class="kpi"><div class="label">p50</div><div class="v" id="k-p50">– <small>ms</small></div></div>
+        <div class="kpi"><div class="label">p95</div><div class="v" id="k-p95">– <small>ms</small></div></div>
+        <div class="kpi"><div class="label">p99</div><div class="v" id="k-p99">– <small>ms</small></div></div>
+      </div>
+      <div class="vars" id="codes" style="margin-top:14px"></div>
+    </section>
+
+    <section class="card">
+      <h2>Throughput and latency over time</h2>
+      <p class="sub">Bars: requests per second (errors in light grey). Line: p95 latency.</p>
+      <svg id="chart" viewBox="0 0 800 220" preserveAspectRatio="none" role="img" aria-label="Requests per second and p95 latency over time"></svg>
+      <div class="legend"><span><i style="background:rgba(255,255,255,.22)"></i>requests/s</span><span><i style="background:#ededed"></i>errors/s</span><span><i style="background:#52a8ff;height:2px;vertical-align:3px"></i>p95 ms</span></div>
+    </section>
+
+    <section class="card">
+      <h2>Virtual users</h2>
+      <p class="sub">Each user's login result and request stats. Device tokens are masked.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Device</th><th>Token</th><th class="r">Sent</th><th class="r">OK</th><th class="r">Err</th><th class="r">Avg ms</th></tr></thead>
+          <tbody id="utable"><tr><td colspan="9" class="empty">Run a test to see each user</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Sample exchange</h2>
+      <p class="sub">The first successful request, exactly as sent (token masked)</p>
+      <div class="pair">
+        <div><div class="label" style="margin-bottom:6px">Request</div><pre id="sReq">–</pre></div>
+        <div><div class="label" style="margin-bottom:6px">Response</div><pre id="sRes">–</pre></div>
+      </div>
+    </section>
+
+    <section class="card tip">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" style="flex:none;margin-top:1px"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#52a8ff" stroke-width="1.4"/><path d="M9 5v5M9 12.5v.5" stroke="#52a8ff" stroke-width="1.6"/></svg>
+      <div><b>Try it with a fault.</b> The demo API runs through the simulated services (gateway, auth, cart, orders, payments, db). Start a test here, then crash the database in the <a href="/console" style="text-decoration:underline">console</a>: orders start failing with 503 here, and Antibody names db as the root cause there.</div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const FIRST = ["Aarav","Diya","Kabir","Meera","Rohan","Ananya","Vikram","Isha","Arjun","Sara","Nikhil","Priya","Rahul","Tara","Dev","Leela","Karan","Nisha","Aditya","Zara"];
+const LAST = ["Sharma","Reddy","Iyer","Khan","Patel","Rao","Das","Nair","Gupta","Menon"];
+let target = "self", runId = null, timer = null;
+
+function hex(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2,"0")).join(""); }
+function genUsers(n){
+  const out = [];
+  for (let i = 0; i < n; i++){
+    const f = FIRST[i % FIRST.length], l = LAST[(i * 7) % LAST.length];
+    out.push(`${f} ${l}, ${f.toLowerCase()}.${l.toLowerCase()}${i+1}@example.com, dev_${hex(8)}`);
+  }
+  $("users").value = out.join("\n");
+  refresh();
+}
+function parseUsers(){
+  return $("users").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
+    const [name, email, device_token] = l.split(",").map(x => (x || "").trim());
+    return {name, email, device_token};
+  });
+}
+function refresh(){
+  const us = parseUsers();
+  const bad = us.filter(u => !u.name || !EMAIL.test(u.email || "") || (u.device_token || "").length < 8).length;
+  $("userStats").innerHTML = `<span class="chip ok">${us.length} users</span>` +
+    (bad ? `<span class="chip bad">${bad} will fail login</span>` : "");
+  const rpu = +$("rpu").value;
+  $("rpuV").textContent = rpu; $("concV").textContent = $("conc").value;
+  const total = us.length * rpu;
+  $("total").textContent = `${total.toLocaleString()} requests${$("authOn").checked ? ` + ${us.length} logins` : ""}`;
+  $("run").disabled = !us.length || total > 2000 || !!timer;
+  $("err").textContent = total > 2000 ? "Max 2,000 requests per run. Lower users or requests per user." : "";
+}
+
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  target = b.dataset.target;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("customBox").hidden = target !== "custom";
+});
+$("authOn").onchange = () => { $("authBox").hidden = !$("authOn").checked; refresh(); };
+document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => {
+  if (b.dataset.preset === "profile"){ $("method").value = "GET"; $("path").value = "/api/demo/profile"; $("body").value = ""; }
+  else { $("method").value = "POST"; $("path").value = "/api/demo/orders"; $("body").value = '{"item":"sku-{{i}}","qty":1}'; }
+});
+$("gen").onclick = () => genUsers(Math.max(1, Math.min(200, +$("genN").value || 20)));
+$("addBad").onclick = () => { $("users").value = $("users").value.trim() + "\nMallory Test, not-an-email, short"; refresh(); };
+["users","rpu","conc"].forEach(id => $(id).addEventListener("input", refresh));
+
+$("run").onclick = async () => {
+  $("err").textContent = "";
+  const cfg = {
+    target: target === "custom" ? $("target").value.trim() : "",
+    auth: {enabled: $("authOn").checked, login_path: $("loginPath").value, login_body: $("loginBody").value, token_field: $("tokenField").value},
+    request: {method: $("method").value, path: $("path").value, headers: $("headers").value, body: $("body").value},
+    users: parseUsers(), requests_per_user: +$("rpu").value, concurrency: +$("conc").value,
+  };
+  try {
+    const r = await fetch("/api/loadtest/run", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(cfg)});
+    const j = await r.json();
+    if (!r.ok) throw new Error(typeof j.detail === "string" ? j.detail : "Check the test data: every line needs name, email, device token.");
+    runId = j.id; $("stop").hidden = false; poll();
+    timer = setInterval(poll, 500); refresh();
+  } catch (e) { $("err").textContent = e.message; }
+};
+$("stop").onclick = () => runId && fetch(`/api/loadtest/${runId}/cancel`, {method: "POST"});
+
+async function poll(){
+  try {
+    const r = await fetch(`/api/loadtest/${runId}`); if (!r.ok) return;
+    render(await r.json());
+  } catch {}
+}
+
+function fmt(v, d = 0){ return v == null ? "–" : Number(v).toLocaleString(undefined, {maximumFractionDigits: d}); }
+function render(s){
+  const running = s.state === "running";
+  $("dot").className = "dot " + (running ? "live" : "done");
+  $("stateText").textContent = running ? "Running" : s.state === "done" ? "Complete" : s.state === "cancelled" ? "Stopped" : "Error";
+  $("meta").textContent = `${s.target} · ${fmt(s.done)}/${fmt(s.total)} requests · ${fmt(s.elapsed, 1)}s`;
+  $("bar").style.width = (100 * s.done / Math.max(1, s.total)) + "%";
+  $("k-req").textContent = fmt(s.requests);
+  $("k-ok").textContent = s.success_rate == null ? "–" : s.success_rate + "%";
+  $("k-rps").innerHTML = `${fmt(s.rps, 1)} <small>req/s</small>`;
+  for (const k of ["p50","p95","p99"]) $("k-" + k).innerHTML = `${fmt(s[k])} <small>ms</small>`;
+  const L = s.logins;
+  $("codes").innerHTML = (L.attempted ? `<span class="chip ${L.ok === L.attempted ? "ok" : "bad"}">logins ${L.ok}/${L.attempted} ok · p50 ${fmt(L.p50)} ms</span>` : "") +
+    Object.entries(s.codes).sort().map(([c, n]) => `<span class="chip ${c.startsWith("2") ? "ok" : "bad"}">${c === "0" || c === "ERR" ? "no response" : c} × ${n}</span>`).join("");
+  chart(s.timeline, s.step || 1);
+  $("utable").innerHTML = s.users.map((u, i) => `<tr><td class="mono l">${i+1}</td><td>${esc(u.name)}</td><td class="mono">${esc(u.email)}</td><td class="mono">${esc(u.device)}</td>
+    <td class="mono" style="color:${u.token === "issued" ? "var(--ok)" : u.token.startsWith("failed") ? "var(--fail)" : "var(--muted)"}">${esc(u.token)}</td>
+    <td class="mono r">${u.sent}</td><td class="mono r">${u.ok}</td><td class="mono r">${u.err}</td><td class="mono r">${fmt(u.avg)}</td></tr>`).join("");
+  if (s.sample){
+    const q = s.sample;
+    $("sReq").textContent = `${q.method} ${q.url}\n` + Object.entries(q.headers).map(([k, v]) => `${k}: ${v}`).join("\n") + (q.body ? `\n\n${q.body}` : "");
+    let body = q.response; try { body = JSON.stringify(JSON.parse(q.response), null, 2); } catch {}
+    $("sRes").textContent = `HTTP ${q.status}\n\n${body}`;
+  } else if (s.login_error){
+    $("sRes").textContent = `Login failed for ${s.login_error.user}: HTTP ${s.login_error.status}\n\n${s.login_error.response}`;
+  }
+  if (!running && timer){ clearInterval(timer); timer = null; $("stop").hidden = true; refresh(); }
+}
+
+function chart(tl, step){
+  const svg = $("chart"), W = 800, H = 220, P = {l: 40, r: 44, t: 10, b: 22};
+  if (!tl.length){ svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" class="axis">No data yet</text>`; return; }
+  const n = Math.max(tl[tl.length-1].s + 1, 10), bw = (W - P.l - P.r) / n;
+  const maxN = Math.max(...tl.map(d => d.n), 1), maxP = Math.max(...tl.map(d => d.p95 || 0), 1);
+  const y = v => H - P.b - (H - P.t - P.b) * v / maxN, yp = v => H - P.b - (H - P.t - P.b) * v / maxP;
+  let out = `<line x1="${P.l}" x2="${W-P.r}" y1="${H-P.b}" y2="${H-P.b}" stroke="rgba(255,255,255,.15)"/>`;
+  out += `<text x="${P.l-6}" y="${P.t+8}" text-anchor="end" class="axis">${Math.round(maxN)}/s</text><text x="${P.l-6}" y="${H-P.b}" text-anchor="end" class="axis">0</text>`;
+  out += `<text x="${W-P.r+6}" y="${P.t+8}" class="axis" style="fill:#52a8ff">${Math.round(maxP)}ms</text>`;
+  const pts = [];
+  for (const d of tl){
+    const x = P.l + d.s * bw + 1, w = Math.max(bw - 2, 1), ok = d.n - d.err;
+    out += `<rect x="${x}" y="${y(d.n)}" width="${w}" height="${y(0) - y(d.n)}" fill="rgba(255,255,255,.22)"/>`;
+    if (d.err) out += `<rect x="${x}" y="${y(d.n)}" width="${w}" height="${y(0) - y(d.err)}" fill="#ededed"/>`;
+    if (d.p95 != null) pts.push(`${x + w/2},${yp(d.p95)}`);
+  }
+  if (pts.length) out += `<polyline points="${pts.join(" ")}" fill="none" stroke="#52a8ff" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  for (let s = 0; s < n; s += Math.ceil(n / 8)) out += `<text x="${P.l + s*bw}" y="${H-6}" class="axis">${+(s*step).toFixed(2)}s</text>`;
+  svg.innerHTML = out;
+}
+
+genUsers(20);
+fetch("/api/loadtest/latest").then(r => r.ok ? r.json() : null).then(s => { if (s){ runId = s.id; render(s); if (s.state === "running"){ timer = setInterval(poll, 500); $("stop").hidden = false; } } }).catch(() => {});
+</script>
+</body>
+</html>

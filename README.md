@@ -40,7 +40,7 @@ Expected: `Uvicorn running on http://127.0.0.1:8000`.
 
 **Step 5.** Click **Break it yourself** (or go to http://localhost:8000/console) and press **Crash the database**.
 
-Pages: `/` overview (live traces, failure clustering, incident replay, benchmark), `/console` the live incident console.
+Pages: `/` overview (live traces, failure clustering, incident replay, benchmark), `/console` the live incident console, `/loadtest` authenticated API load testing.
 
 **Optional, AI explanations:** before step 3, set one of these. Without a key, Antibody writes the explanation from a template built from the same evidence, so the demo never depends on Wi-Fi.
 
@@ -53,7 +53,18 @@ export LLM_API_KEY=... LLM_MODEL=llama-3.3-70b-versatile
 
 **Benchmark from the terminal:** `cd backend && python bench.py`. Takes about 7 seconds.
 
-**Tests:** `pip install pytest && cd backend && python -m pytest -q`. Five checks: a database crash is ranked first with HIGH confidence, a bad deploy is recognised and rolled back, a repeat failure is recalled from memory, healthy traffic raises no incidents, and the engine never reads the simulator's ground truth. GitHub Actions runs them and the benchmark on every push.
+**Tests:** `pip install pytest && cd backend && python -m pytest -q`. Eight checks, including: a database crash is ranked first with HIGH confidence, a bad deploy is recognised and rolled back, a repeat failure is recalled from memory, healthy traffic raises no incidents, and the engine never reads the simulator's ground truth. GitHub Actions runs them and the benchmark on every push.
+
+## API load testing (authenticated)
+
+Open `/loadtest`. Paste or generate virtual users (one per line: `name, email, device_token`), then run.
+
+- **Per-user variables:** `{{name}}`, `{{email}}`, `{{device_token}}`, `{{token}}` (the bearer token from login) and `{{i}}` (request number) can be used in the path, headers and body.
+- **Authenticated flow:** each virtual user first calls `POST /api/demo/auth/login`, receives its own bearer token bound to its device token, then sends N requests with `Authorization: Bearer {{token}}` and `X-Device-Token: {{device_token}}`. A wrong device token returns 403, a missing or expired token returns 401.
+- **Results:** throughput, success rate, p50/p95/p99 latency, status codes, a timeline chart, a per-user table and the first request/response exactly as sent (tokens masked).
+- **Tied to RCA:** the demo API runs through the simulated services. Crash the database in the console during a load test: orders fail with 503 in the load test while Antibody names db as the root cause.
+- **Any live public API:** start the server with `ANTIBODY_ALLOW_EXTERNAL_LOADTEST=1 uvicorn main:app --port 8000`, choose *Custom URL*, and set the login endpoint, login body and token field for that API. Example that works today: base URL `https://dummyjson.com`, login `/auth/login` with body `{"username":"emilys","password":"emilyspass"}`, token field `accessToken`, request `GET /auth/me` with header `Authorization: Bearer {{token}}`.
+- **Safety:** max 2,000 requests and 50 concurrent users per run. External targets stay off unless that flag is set, so the public deploy can't be used to flood other sites.
 
 ## How it works
 
@@ -139,14 +150,15 @@ Also: two unrelated faults at once, both found as separate incidents in 6/6 pair
 
 ```
 backend/   sim.py (simulated services) · engine.py (detect, correlate, rank) · bench.py
+           loadtest.py (authenticated demo API + load runner)
            reports.py (explanations, post-mortem) · main.py (API + WebSocket) · tests/
-frontend/  index.html (overview) · console.html (live incident console)
+frontend/  index.html (overview) · console.html (live incident console) · loadtest.html
 docs/      design handoffs
 ```
 
 ## API
 
-`GET /api/state` · `GET /api/incidents/{id}` · `POST /api/chaos` · `POST /api/incidents/{id}/ack | remediate | resolve | explain` · `GET /api/incidents/{id}/postmortem` · `POST /api/ingest` · `POST /api/config` · `GET /api/benchmark` · `WS /ws`
+`GET /api/state` · `GET /api/incidents/{id}` · `POST /api/chaos` · `POST /api/incidents/{id}/ack | remediate | resolve | explain` · `GET /api/incidents/{id}/postmortem` · `POST /api/ingest` · `POST /api/config` · `GET /api/benchmark` · `WS /ws` · `POST /api/demo/auth/login` · `GET /api/demo/profile` · `POST /api/demo/orders` · `POST /api/loadtest/run` · `GET /api/loadtest/{id}`
 
 ## Deploy
 

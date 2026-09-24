@@ -18,17 +18,20 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 import bench
+import loadtest
 import reports
 from engine import Engine, SIGNATURES
 from sim import FAULT_TYPES, SERVICES, World
 
-app = FastAPI(title="Antibody", version="0.3")
+app = FastAPI(title="Antibody", version="0.4")
 
 world = World()
 engine = Engine()
 injected: dict[str, dict] = {}          # ground truth, shown only in the chaos panel
 lock = threading.Lock()
 bench_cache: dict = {"running": False, "result": None}
+loadtest.bind(world)
+app.include_router(loadtest.router)
 
 
 def health(name: str) -> float:
@@ -338,3 +341,8 @@ def index():
 @app.get("/console")
 def console():
     return FileResponse(FRONTEND / "console.html")
+
+
+@app.get("/loadtest")
+def loadtest_page():
+    return FileResponse(FRONTEND / "loadtest.html")

@@ -45,6 +45,8 @@ header{height:68px;display:flex;align-items:center;gap:28px;padding:0 24px;borde
 .dot.warn{background:var(--muted)} .dot.bad{background:var(--fail)}
 .pill .dot{animation:breathe 2.4s ease-in-out infinite}
 
+.ltlink{font:500 13px var(--sans);color:var(--muted);box-shadow:0 0 0 1px var(--line);padding:8px 14px}
+.ltlink:hover{color:#fff;box-shadow:0 0 0 1px #fff}
 /* layout */
 main{display:grid;grid-template-columns:360px minmax(0,1fr) 350px;gap:16px;padding:16px;align-items:start}
 .col{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -201,6 +203,7 @@ td.num{text-align:right} th.num{text-align:right}
     <button role="tab" aria-selected="true" data-view="live">Live</button>
     <button role="tab" aria-selected="false" data-view="bench">Benchmark</button>
   </div>
+  <a class="ltlink" href="/loadtest">Load test</a>
   <div class="pill" id="pill"><span class="dot warn"></span><span>Connecting</span></div>
 </header>
 
