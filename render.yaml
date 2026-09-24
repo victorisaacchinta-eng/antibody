@@ -1,0 +1,13 @@
+# One-click deploy on Render (render.com): New + > Blueprint > pick this repo.
+services:
+  - type: web
+    name: antibody
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python bench.py --save
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/state
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
