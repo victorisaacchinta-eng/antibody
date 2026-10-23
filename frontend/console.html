@@ -279,7 +279,7 @@ async function api(path, body) {
   return ct.includes("json") ? r.json() : r.text();
 }
 
-/* ---------- animated counters ---------- */
+/* animated counters */
 const shown = {};
 function tween(id, target, suffix = "") {
   const el = document.getElementById(id);
@@ -291,7 +291,7 @@ function tween(id, target, suffix = "") {
   requestAnimationFrame(step);
 }
 
-/* ---------- header ---------- */
+/* header */
 function renderHeader() {
   const c = S.counters;
   tween("s-total", c.total_events);
@@ -304,7 +304,7 @@ function renderHeader() {
   else pill.innerHTML = `<span class="dot"></span><span>Watching ${Object.keys(S.services).length} services</span>`;
 }
 
-/* ---------- graph ---------- */
+/* graph */
 function layout(nodes, edges) {
   const callers = {}, deps = {};
   nodes.forEach(n => { callers[n] = []; deps[n] = []; });
@@ -354,7 +354,7 @@ function renderGraph() {
   svg.innerHTML = h;
 }
 
-/* ---------- chaos + settings ---------- */
+/* chaos + settings */
 function initControls() {
   $("#c-svc").innerHTML = S.service_list.map(s => `<option>${esc(s)}</option>`).join("");
   $("#c-fault").innerHTML = S.faults.map(f => `<option value="${f}">${FAULT_LABEL[f] || f}</option>`).join("");
@@ -377,7 +377,7 @@ function renderInjected() {
     : "";
 }
 
-/* ---------- incidents list ---------- */
+/* incidents list */
 function renderList() {
   const list = S.incidents;
   const real = list.filter(i => !i.transient).length, tr = list.length - real;
@@ -401,7 +401,7 @@ function autoSelect() {
   if (selected == null && S.incidents.length) { const r = S.incidents.find(i => !i.transient); if (r) selected = r.id; }
 }
 
-/* ---------- detail ---------- */
+/* detail */
 function verdictBox(d) {
   const v = d.verdict; if (!v || !d.causes.length) return "";
   const top = d.causes[0].service;
@@ -465,7 +465,7 @@ function renderDetail() {
     a.download = `INC-${d.id}-postmortem.md`; a.click(); };
 }
 
-/* ---------- logs + memory ---------- */
+/* logs + memory */
 let lastLogKey = "";
 function renderLogs() {
   const key = S.logs.map(l => l.ts + l.message).join("|");
@@ -477,7 +477,7 @@ function renderMemory() {
   $("#memory").innerHTML = S.memory.slice().reverse().map(m => `<div class="mem-item"><b style="color:var(--ink)">${esc(m.service)}</b> · ${esc(m.signature.replace(/_/g, " "))} → <span class="mono">${esc(m.action || "manual")}</span> <span style="color:var(--faint)">INC-${m.incident}, ${Math.round(m.ttr)}s</span></div>`).join("");
 }
 
-/* ---------- main loop ---------- */
+/* main loop */
 let inited = false;
 function onState(s) {
   S = s;
@@ -493,7 +493,7 @@ function connect() {
 api("/api/state").then(onState).catch(() => {});
 connect();
 
-/* ---------- benchmark view ---------- */
+/* benchmark view */
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
   const bench = b.dataset.view === "bench";
@@ -532,7 +532,7 @@ async function loadBench() {
           <tr><td><b>Antibody (full)</b></td><td class="num"><b>${sm.clean.rca_top1}%</b></td><td class="num"><b>${sm.hard.rca_top1}%</b></td></tr>
         </tbody></table>
         <p class="sub" style="margin:12px 0 0">What this shows: on clean traffic, B and C also reach 100%, so our simulator is too easy to separate them. In hard mode the full model ties "loudest anomaly" overall. It wins every quiet-crash cascade, where the root goes silent and its callers are loud, and loses when the fault is high in the graph and a red herring sits below it. The confidence label flags most of those losses.</p></div>
-      <div class="card"><h2>Honest confidence</h2><p class="sub">Hard mode. Labels use fixed thresholds, not tuned, and are not probabilities.</p>
+      <div class="card"><h2>Confidence labels</h2><p class="sub">Hard mode. Labels use fixed thresholds, not tuned, and are not probabilities.</p>
         <table><thead><tr><th>Label</th><th class="num">Given</th><th class="num">Correct when given</th></tr></thead><tbody>
           ${["HIGH","MEDIUM","LOW"].map(l => `<tr><td>${l}${l === "LOW" ? " · abstains" : ""}</td><td class="num">${sm.hard.labels[l].share}%</td><td class="num">${sm.hard.labels[l].top1_when_given ?? "-"}${sm.hard.labels[l].top1_when_given != null ? "%" : ""}</td></tr>`).join("")}
           <tr><td><b>Answered (HIGH + MEDIUM)</b></td><td class="num"></td><td class="num"><b>${sm.hard.labels.top1_when_answered}%</b></td></tr>

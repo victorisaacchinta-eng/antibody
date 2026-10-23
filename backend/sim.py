@@ -8,7 +8,7 @@ same schema to POST /api/ingest instead.
 
 Faults propagate up the call graph one hop per tick (a caller sees its
 dependency's failure on the next request cycle), which is what gives the
-root cause an earlier onset than its symptoms - exactly like production.
+root cause an earlier onset than its symptoms, as in a real system.
 """
 
 from __future__ import annotations
@@ -93,7 +93,7 @@ class World:
         self._prev_lat = {n: BASE["latency"] for n in SERVICES}
         self._prev_crashed = {n: False for n in SERVICES}
 
-    # ---------- chaos + remediation ----------
+    # chaos + remediation
 
     def inject(self, service: str, fault: str, now: float) -> list[dict]:
         s = self.services[service]
@@ -122,7 +122,7 @@ class World:
             s.own_latency, s.own_error = BASE["latency"], BASE["error_rate"]
         return fixed, events
 
-    # ---------- simulation step ----------
+    # simulation step
 
     def tick(self, now: float) -> list[dict]:
         r = self.rng
@@ -262,9 +262,9 @@ class World:
         spans = []
         seq = [0]
 
-        # Spans carry real offsets now (start_ms relative to the trace, span/parent ids)
-        # so the UI can draw a waterfall. RNG draws happen in exactly the same order as
-        # before, so benchmark results are unchanged.
+        # Spans carry offsets (start_ms relative to the trace, span/parent ids) so the
+        # UI can draw a waterfall. Keep the RNG draws in this order or the benchmark
+        # results change.
         def call(parent: str | None, parent_id: str | None, svc: str, start: float) -> tuple[bool, float]:
             sid = f"{tid}.{seq[0]}"
             seq[0] += 1

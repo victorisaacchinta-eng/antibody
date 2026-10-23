@@ -45,7 +45,7 @@ def bind(world) -> None:
     _world = world
 
 
-# ------------------------------------------------------------------ demo API
+# demo API
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 TOKEN_TTL = 900
@@ -131,7 +131,7 @@ async def demo_order(body: Order, authorization: str | None = Header(None),
             "customer": s["email"], "path": PATHS["orders"], "sim_latency_ms": round(lat, 1)}
 
 
-# ------------------------------------------------------------------ runner
+# runner
 
 VAR_RE = re.compile(r"\{\{\s*(\w+)\s*\}\}")
 
