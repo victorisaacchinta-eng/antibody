@@ -4,7 +4,7 @@
 
 > Finds the one event that actually caused the failure, out of thousands.
 
-Antibody is an AI-assisted root cause analysis engine for microservices. It ingests logs, metrics, traces and service events, learns the service dependency graph from traces, correlates everything that happens in a time window into **one** incident, and ranks the probable root causes with evidence, an RCA score and a confidence label (HIGH / MEDIUM / LOW). When it isn't sure, it says "insufficient evidence" instead of guessing. Engineers acknowledge, apply the suggested fix, and resolve. Antibody remembers what fixed it for next time.
+Antibody is an AI-assisted root cause analysis engine for microservices. It ingests logs, metrics, traces and service events, learns the service dependency graph from traces, correlates everything that happens in a time window into **one** incident, and ranks the probable root causes with evidence, an RCA score and an honest confidence label (HIGH / MEDIUM / LOW). When it isn't sure, it says "insufficient evidence" instead of guessing. Engineers acknowledge, apply the suggested fix, and resolve. Antibody remembers what fixed it for next time.
 
 Built for the Microsoft Codathon, Problem 3: *AI-Powered Incident Root Cause Analysis Engine*.
 
@@ -113,7 +113,7 @@ simulator / POST /api/ingest
 
 Also: two unrelated faults at once, both found as separate incidents in 6/6 pairs. A repeat failure is recognised from memory. Median time to detect: 2 s. About 2,000 events folded per incident.
 
-**Caveats.**
+**Read these honestly.**
 
 - On clean traffic, baselines B and C also hit 100%. Our simulator is too easy to separate the models there.
 - In hard mode the full model ties "loudest anomaly" overall. It wins every quiet-crash cascade (the root goes silent while its callers get loud). It loses when the fault is high in the graph and a red herring sits below it. The confidence label flags 5 of those 6 losses as LOW or MEDIUM.
@@ -153,6 +153,7 @@ backend/   sim.py (simulated services) · engine.py (detect, correlate, rank) ·
            loadtest.py (authenticated demo API + load runner)
            reports.py (explanations, post-mortem) · main.py (API + WebSocket) · tests/
 frontend/  index.html (overview) · console.html (live incident console) · loadtest.html
+docs/      design handoffs
 ```
 
 ## API
@@ -171,7 +172,7 @@ frontend/  index.html (overview) · console.html (live incident console) · load
 
 ## Team
 
-Built by Team Jarvis for the Microsoft Codathon.
+Built by Team Ace Azael for the Microsoft Codathon. Teammates: fork this repo to keep a copy on your profile.
 
 ## License
 

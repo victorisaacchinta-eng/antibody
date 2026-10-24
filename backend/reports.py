@@ -3,8 +3,8 @@ Plain-English explanation + post-incident report.
 
 The LLM is optional and never decides anything: it only rewrites evidence the
 engine already computed. With no key configured (or no network) we fall back
-to a deterministic template built from the same evidence, so the demo works
-offline.
+to a deterministic template built from the same evidence, so the demo never
+depends on venue Wi-Fi.
 
 Configure one of:
   AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT

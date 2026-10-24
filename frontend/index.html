@@ -101,7 +101,7 @@ table.spans th.dur{text-align:right}
 tr.focus .tl i{background:var(--accent)}
 .stream-foot{padding:12px 16px;border-top:1px solid var(--ring);font:12px var(--mono);color:var(--muted)}
 
-/* cards */
+/* bento */
 .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .bento .card{padding:24px;display:flex;flex-direction:column;min-height:440px;min-width:0}
 .bento h3{font-size:22px;letter-spacing:-.8px;line-height:1.15;margin:0 0 8px}
@@ -268,7 +268,7 @@ footer{max-width:1240px;margin:0 auto;padding:56px;display:flex;justify-content:
 </section>
 
 <footer>
-  <span>antibody · Microsoft Codathon · Problem 3 · team Jarvis</span>
+  <span>antibody · Microsoft Codathon · Problem 3 · team Ace Azael</span>
   <span>Simulated 7-service system · reproducible benchmark · LLM explains, never decides</span>
 </footer>
 
@@ -279,7 +279,7 @@ const fmt = n => Number(n || 0).toLocaleString("en-US");
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
 
-/* mobile menu */
+/* ---------------- mobile menu ---------------- */
 const menu = $("#menu");
 $("#menu-open").onclick = () => { menu.hidden = false; $("#menu-open").setAttribute("aria-expanded", "true"); $("#menu-close").focus(); };
 const closeMenu = () => { menu.hidden = true; $("#menu-open").setAttribute("aria-expanded", "false"); };
@@ -287,7 +287,7 @@ $("#menu-close").onclick = closeMenu;
 menu.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
 addEventListener("keydown", e => { if (e.key === "Escape" && !menu.hidden) closeMenu(); });
 
-/* halftone shader */
+/* ---------------- halftone shader ---------------- */
 (function halftone() {
   const canvas = $("#halftone");
   const gl = canvas.getContext("webgl", {antialias: false, premultipliedAlpha: false});
@@ -369,7 +369,7 @@ addEventListener("keydown", e => { if (e.key === "Escape" && !menu.hidden) close
   if (reduce) draw(12.0); else start();                   // reduced motion: one still frame
 })();
 
-/* live chip + live cards */
+/* ---------------- live chip + live bento cards ---------------- */
 let S = null;
 async function pollState() {
   try {
@@ -383,7 +383,7 @@ async function pollState() {
 }
 setInterval(pollState, 1500); pollState();
 
-/* event stream */
+/* ---------------- event stream ---------------- */
 let traces = [], selTrace = null, pinnedTrace = false, focusSpan = null, lastErrSeen = null;
 async function pollTraces() {
   try { traces = await get("/api/traces?limit=30"); } catch { return; }
@@ -430,7 +430,7 @@ function renderTrace(tr) {
 }
 setInterval(() => { if (!pinnedTrace) pollTraces(); }, 2000); pollTraces();
 
-/* failure clustering card (live) */
+/* ---------------- bento: failure clustering (live) ---------------- */
 function renderCluster() {
   if (!S) return;
   const rows = Object.entries(S.services).map(([n, s]) => ({n, own: s.signals.own_err, blame: s.signals.blame_in, span: s.signals.span_err}));
@@ -442,7 +442,7 @@ function renderCluster() {
       <div class="stack"><i class="own" style="width:${r.own / max * 100}%"></i><i class="blame" style="width:${r.blame / max * 100}%"></i><i class="span" style="width:${r.span / max * 100}%"></i></div></div>`).join("");
 }
 
-/* incident replay card (live) */
+/* ---------------- bento: incident replay (live) ---------------- */
 let replayKey = "";
 async function renderReplay() {
   if (!S) return;
@@ -463,7 +463,7 @@ async function renderReplay() {
   $("#diff").innerHTML = `<div class="ln hunk"><span>@@</span><span class="txt">INC-${d.id} · ${esc(d.severity)} · ${esc(top)} · ${esc(v)} · ${esc(d.status)}</span></div>` + lines;
 }
 
-/* benchmark: regression card + metrics */
+/* ---------------- benchmark: regression card + metrics ---------------- */
 async function loadBench() {
   const b = await get("/api/benchmark").catch(() => null);
   if (!b || !b.result) { setTimeout(loadBench, 1500); return; }

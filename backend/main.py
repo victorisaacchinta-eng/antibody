@@ -139,7 +139,7 @@ async def startup():
         threading.Thread(target=_run_bench, daemon=True).start()
 
 
-# read
+# ------------------------------------------------------------ read
 
 @app.get("/api/state")
 def get_state():
@@ -165,7 +165,7 @@ def get_postmortem(iid: int):
         return reports.postmortem(i, engine)
 
 
-# write
+# ------------------------------------------------------------ write
 
 class Chaos(BaseModel):
     service: str

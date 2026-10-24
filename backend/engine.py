@@ -159,7 +159,7 @@ class Engine:
         self.ticks = 0
         self.now = 0.0
 
-    # ingest
+    # ------------------------------------------------------------ ingest
 
     def _s(self, name: str) -> Signals:
         if name not in self.sig:
@@ -232,7 +232,7 @@ class Engine:
                     s.last_deploy = {"ts": ts, "version": labels.get("version"), "previous": labels.get("previous")}
                 self.recent_logs.append({"ts": ts, "service": svc, "level": "EVENT", "message": e.get("message") or name})
 
-    # graph (learned from traces)
+    # ------------------------------------------------------------ graph (learned from traces)
 
     def graph(self) -> tuple[dict[str, set], dict[str, set]]:
         deps, callers = defaultdict(set), defaultdict(set)
@@ -272,7 +272,7 @@ class Engine:
                 return top
         return None
 
-    # tick
+    # ------------------------------------------------------------ tick
 
     def tick(self, now: float):
         self.now = now
@@ -314,7 +314,7 @@ class Engine:
         for s in self.sig.values():
             s.decay()
 
-    # correlate
+    # ------------------------------------------------------------ correlate
 
     def _correlate(self, now: float):
         deps, callers = self.graph()
@@ -374,7 +374,7 @@ class Engine:
         lo = now - self.cfg.correlation_window
         return sum(1 for ts, svc in self.events if ts >= lo and svc in services)
 
-    # rank
+    # ------------------------------------------------------------ rank
 
     def _pagerank(self, nodes: list[str], deps) -> dict[str, float]:
         """Personalised PageRank that walks from symptoms toward the things they
@@ -486,7 +486,7 @@ class Engine:
 
     @staticmethod
     def verdict(causes: list[dict]) -> dict | None:
-        """Confidence label with fixed thresholds (not tuned):
+        """Honest confidence label with fixed, disclosed thresholds (not tuned):
         HIGH   no contradiction, lead over #2 >= 0.15, >= 3 independent evidence types
         LOW    lead < 0.05, or a contradiction -> abstain: 'insufficient evidence'
         MEDIUM everything else"""
@@ -524,7 +524,7 @@ class Engine:
                         "confidence": c["confidence"]})
         return out
 
-    # incident upkeep
+    # ------------------------------------------------------------ incident upkeep
 
     def _update_incidents(self, now: float):
         for inc in self.incidents:
@@ -564,7 +564,7 @@ class Engine:
                 inc.resolved_at, inc.resolved_by = now, "auto"
                 inc.log(now, "verifier", f"closed as transient: recovered in {now - inc.opened_at:.0f}s with no action")
 
-    # human workflow
+    # ------------------------------------------------------------ human workflow
 
     def get(self, iid: int) -> Incident | None:
         return next((i for i in self.incidents if i.id == iid), None)
