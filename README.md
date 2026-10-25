@@ -1,12 +1,54 @@
-# Antibody
+<p align="center">
+  <img src="docs/media/hero.gif" alt="Antibody overview page: a live halftone field behind the headline, Thousands of events in. One root cause out." width="100%">
+</p>
 
-[![tests](https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml/badge.svg)](https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml) [![python](https://img.shields.io/badge/python-3.11%2B-52a8ff)](https://www.python.org/) [![license](https://img.shields.io/badge/license-MIT-62c073)](LICENSE)
+<h1 align="center">Antibody</h1>
 
-> Finds the one event that actually caused the failure, out of thousands.
+<p align="center">
+  <a href="https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml"><img src="https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%2B-52a8ff" alt="python"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-62c073" alt="license"></a>
+  <a href="https://antibody-aagg.onrender.com"><img src="https://img.shields.io/badge/live%20demo-render-111111?logo=render&logoColor=white" alt="live demo"></a>
+  <a href="#benchmark-reproducible-python-benchpy"><img src="https://img.shields.io/badge/benchmark-168%20scenarios-1f1f1f" alt="benchmark"></a>
+</p>
+
+<p align="center"><b>Finds the one event that actually caused the failure, out of thousands.</b></p>
+
+<p align="center">
+  <a href="https://antibody-aagg.onrender.com">Live demo</a> ·
+  <a href="https://antibody-aagg.onrender.com/console">Break it yourself</a> ·
+  <a href="#run-it-mac">Run it locally</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#benchmark-reproducible-python-benchpy">Benchmark</a>
+</p>
+
+---
 
 Antibody is an AI-assisted root cause analysis engine for microservices. It ingests logs, metrics, traces and service events, learns the service dependency graph from traces, correlates everything that happens in a time window into **one** incident, and ranks the probable root causes with evidence, an RCA score and an honest confidence label (HIGH / MEDIUM / LOW). When it isn't sure, it says "insufficient evidence" instead of guessing. Engineers acknowledge, apply the suggested fix, and resolve. Antibody remembers what fixed it for next time.
 
 Built for the Microsoft Codathon, Problem 3: *AI-Powered Incident Root Cause Analysis Engine*.
+
+## See it work
+
+**Crash the database.** Five services light up, about 5,000 logs, metrics and traces fold into a single incident, and `db` is ranked first with HIGH confidence. The suggested fix restarts it, the graph turns green, and the incident is resolved.
+
+<p align="center">
+  <img src="docs/media/console.gif" alt="Live console: a database crash cascades through five services, Antibody folds thousands of events into one incident, ranks db first with HIGH confidence, restarts it and resolves" width="100%">
+</p>
+
+<table>
+  <tr>
+    <td width="48%" valign="top">
+      <h4>It shows its work</h4>
+      <p>Every suspect carries the evidence behind its score: the share of callers' error logs that blame it, onset order, PageRank on the anomaly graph, its local fault signature and the raw log lines that triggered it. Downstream services that only <i>look</i> broken are scored too, and the reason they rank low is written next to them.</p>
+      <h4>It remembers</h4>
+      <p>Crash the database a second time. The ranking gains a sixth piece of evidence, <i>matches incident #1 (fixed by restart)</i>, the confidence banner counts the past incident as an independent evidence type, and the suggested fix arrives with how long it took last time.</p>
+      <h4>It knows when to stay quiet</h4>
+      <p>Confidence comes from fixed rules: the lead over the runner-up, how many independent evidence types agree, and whether any contradict. When they don't line up, the label is LOW and the engine says "insufficient evidence" rather than naming a service.</p>
+    </td>
+    <td width="52%" valign="top"><img src="docs/media/memory.png" alt="Second database crash: db ranked first with score 0.89, evidence includes a match with incident 1, and the fix panel says seen before, fixed by restart in 30s" width="100%"></td>
+  </tr>
+</table>
 
 ## Run it (Mac)
 
@@ -59,6 +101,10 @@ export LLM_API_KEY=... LLM_MODEL=llama-3.3-70b-versatile
 
 Open `/loadtest`. Paste or generate virtual users (one per line: `name, email, device_token`), then run.
 
+<p align="center">
+  <img src="docs/media/loadtest.gif" alt="Load test page: 20 virtual users log in, receive bearer tokens and send 800 authenticated requests while throughput, success rate and p50, p95, p99 latency update live" width="100%">
+</p>
+
 - **Per-user variables:** `{{name}}`, `{{email}}`, `{{device_token}}`, `{{token}}` (the bearer token from login) and `{{i}}` (request number) can be used in the path, headers and body.
 - **Authenticated flow:** each virtual user first calls `POST /api/demo/auth/login`, receives its own bearer token bound to its device token, then sends N requests with `Authorization: Bearer {{token}}` and `X-Device-Token: {{device_token}}`. A wrong device token returns 403, a missing or expired token returns 401.
 - **Results:** throughput, success rate, p50/p95/p99 latency, status codes, a timeline chart, a per-user table and the first request/response exactly as sent (tokens masked).
@@ -67,6 +113,13 @@ Open `/loadtest`. Paste or generate virtual users (one per line: `name, email, d
 - **Safety:** max 2,000 requests and 50 concurrent users per run. External targets stay off unless that flag is set, so the public deploy can't be used to flood other sites.
 
 ## How it works
+
+<p align="center">
+  <img src="docs/media/pipeline.svg" alt="Pipeline: ingest, detect, correlate, rank, verdict, suggest, human, report. Steps one to seven are deterministic; the LLM only rewrites evidence in the report" width="100%">
+</p>
+
+<details>
+<summary><b>Step by step, with the exact signals</b></summary>
 
 ```
 simulator / POST /api/ingest
@@ -96,11 +149,17 @@ simulator / POST /api/ingest
    report ── plain-English explanation (LLM optional) + one-click post-mortem
 ```
 
+</details>
+
 **Design rule: automation before AI.** Every decision (detect, correlate, rank, suggest) is deterministic and replayable. The LLM only rewrites evidence the engine already computed into plain English, and the output is labelled as AI-generated. If the LLM is down, nothing breaks.
 
 ## Benchmark (reproducible, `python bench.py`)
 
-84 scenarios (7 services × 6 fault types × 2 seeds), each with a known ground-truth cause. The engine never sees the ground truth; it is only used for scoring.
+84 scenarios (7 services × 6 fault types × 2 seeds), each with a known ground-truth cause, run once on clean traffic and once in hard mode. The engine never sees the ground truth; it is only used for scoring.
+
+<p align="center">
+  <img src="docs/media/benchmark.png" alt="Benchmark tab in the console: clean traffic 100% root cause ranked first, hard mode 84.5% ranked first and 92.9% in the top 3, with baselines and confidence label accuracy" width="100%">
+</p>
 
 | Root cause ranked #1 | Clean | Hard mode (random red-herring blips) |
 | --- | --- | --- |
@@ -153,7 +212,7 @@ backend/   sim.py (simulated services) · engine.py (detect, correlate, rank) ·
            loadtest.py (authenticated demo API + load runner)
            reports.py (explanations, post-mortem) · main.py (API + WebSocket) · tests/
 frontend/  index.html (overview) · console.html (live incident console) · loadtest.html
-docs/      design handoffs
+docs/      design handoffs · media/ (README GIFs and screenshots, recorded from a local run)
 ```
 
 ## API
@@ -161,6 +220,8 @@ docs/      design handoffs
 `GET /api/state` · `GET /api/incidents/{id}` · `POST /api/chaos` · `POST /api/incidents/{id}/ack | remediate | resolve | explain` · `GET /api/incidents/{id}/postmortem` · `POST /api/ingest` · `POST /api/config` · `GET /api/benchmark` · `WS /ws` · `POST /api/demo/auth/login` · `GET /api/demo/profile` · `POST /api/demo/orders` · `POST /api/loadtest/run` · `GET /api/loadtest/{id}`
 
 ## Deploy
+
+**Live:** [antibody-aagg.onrender.com](https://antibody-aagg.onrender.com), on the Render free plan.
 
 **Render (recommended):** push this repo to GitHub, then on render.com choose *New + → Blueprint* and pick the repo. `render.yaml` sets everything up: Python 3.11, the build and start commands, and a health check. The free plan sleeps after 15 minutes idle; the first visit after that takes about a minute to wake, so open the link a couple of minutes before a demo.
 
@@ -172,7 +233,7 @@ docs/      design handoffs
 
 ## Team
 
-Built by Team Ace Azael for the Microsoft Codathon. Teammates: fork this repo to keep a copy on your profile.
+Built by Team Jarvis for the Microsoft Codathon. Teammates: fork this repo to keep a copy on your profile.
 
 ## License
 

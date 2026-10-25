@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400" role="img" aria-labelledby="t d">
+  <title id="t">Antibody pipeline</title>
+  <desc id="d">Signals flow through ingest, detect, correlate, rank, verdict, suggest, a human step and a report. Every step before the report is deterministic; the optional LLM only rewrites computed evidence.</desc>
+  <defs>
+    <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity=".07"/>
+    </pattern>
+    <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L8 4 L0 8 z" fill="#5a5a5a"/>
+    </marker>
+  </defs>
+  <style>
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .sans{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+    .k{font-size:11px;fill:#8a8a8a;letter-spacing:1.4px}
+    .n{font-size:17px;fill:#ffffff;font-weight:600}
+    .s{font-size:12.5px;fill:#a8a8a8}
+    .box{fill:#0a0a0a;stroke:#ffffff;stroke-opacity:.16}
+  </style>
+  <rect width="1200" height="400" fill="#000"/>
+  <rect width="1200" height="400" fill="url(#dots)"/>
+
+  <text x="40" y="52" class="mono k">INPUT</text>
+  <text x="40" y="78" class="sans" font-size="15" fill="#e7e7e7">logs · metrics · traces · deploys · health checks</text>
+  <text x="1160" y="52" class="mono k" text-anchor="end">OUTPUT</text>
+  <text x="1160" y="78" class="sans" font-size="15" fill="#e7e7e7" text-anchor="end">one incident · ranked causes · a fix · a post-mortem</text>
+
+  <!-- stage row -->
+  <g class="sans">
+    <g transform="translate(40,120)">
+      <rect class="box" width="125" height="150"/>
+      <text x="14" y="26" class="mono k">01</text>
+      <text x="14" y="56" class="n">Ingest</text>
+      <text x="14" y="84" class="s">one common</text><text x="14" y="101" class="s">schema; learns</text><text x="14" y="118" class="s">the call graph</text><text x="14" y="135" class="s">from spans</text>
+    </g>
+    <g transform="translate(180,120)">
+      <rect class="box" width="125" height="150"/>
+      <text x="14" y="26" class="mono k">02</text>
+      <text x="14" y="56" class="n">Detect</text>
+      <text x="14" y="84" class="s">EWMA baselines,</text><text x="14" y="101" class="s">z-scores, error</text><text x="14" y="118" class="s">ratios; 2-tick</text><text x="14" y="135" class="s">debounce</text>
+    </g>
+    <g transform="translate(320,120)">
+      <rect class="box" width="125" height="150"/>
+      <text x="14" y="26" class="mono k">03</text>
+      <text x="14" y="56" class="n">Correlate</text>
+      <text x="14" y="84" class="s">callers of the</text><text x="14" y="101" class="s">failure fold into</text><text x="14" y="118" class="s">one incident in</text><text x="14" y="135" class="s">a time window</text>
+    </g>
+    <g transform="translate(460,120)">
+      <rect width="155" height="150" fill="#06121f" stroke="#52a8ff" stroke-opacity=".9"/>
+      <text x="14" y="26" class="mono k" fill="#52a8ff">04</text>
+      <text x="14" y="56" class="n">Rank</text>
+      <text x="14" y="84" class="s">8 signals → RCA score:</text><text x="14" y="101" class="s">PageRank, onset,</text><text x="14" y="118" class="s">caller blame, fault</text><text x="14" y="135" class="s">signature, memory</text>
+    </g>
+    <g transform="translate(630,120)">
+      <rect class="box" width="125" height="150"/>
+      <text x="14" y="26" class="mono k">05</text>
+      <text x="14" y="56" class="n">Verdict</text>
+      <text x="14" y="84" class="s">HIGH · MEDIUM</text><text x="14" y="101" class="s">· LOW from fixed</text><text x="14" y="118" class="s">rules; LOW means</text><text x="14" y="135" class="s">it abstains</text>
+    </g>
+    <g transform="translate(770,120)">
+      <rect class="box" width="125" height="150"/>
+      <text x="14" y="26" class="mono k">06</text>
+      <text x="14" y="56" class="n">Suggest</text>
+      <text x="14" y="84" class="s">signature →</text><text x="14" y="101" class="s">restart, roll</text><text x="14" y="118" class="s">back or scale</text><text x="14" y="135" class="s">out</text>
+    </g>
+    <g transform="translate(910,120)">
+      <rect class="box" width="125" height="150"/>
+      <text x="14" y="26" class="mono k">07</text>
+      <text x="14" y="56" class="n">Human</text>
+      <text x="14" y="84" class="s">acknowledge,</text><text x="14" y="101" class="s">apply, verify,</text><text x="14" y="118" class="s">resolve, and it</text><text x="14" y="135" class="s">remembers</text>
+    </g>
+    <g transform="translate(1050,120)">
+      <rect class="box" width="110" height="150" stroke-dasharray="4 4"/>
+      <text x="14" y="26" class="mono k">08</text>
+      <text x="14" y="56" class="n">Report</text>
+      <text x="14" y="84" class="s">plain English</text><text x="14" y="101" class="s">(LLM optional)</text><text x="14" y="118" class="s">+ one-click</text><text x="14" y="135" class="s">post-mortem</text>
+    </g>
+  </g>
+
+  <!-- connectors -->
+  <g stroke="#5a5a5a" stroke-width="1.2" marker-end="url(#arr)">
+    <line x1="165" y1="195" x2="178" y2="195"/>
+    <line x1="305" y1="195" x2="318" y2="195"/>
+    <line x1="445" y1="195" x2="458" y2="195"/>
+    <line x1="615" y1="195" x2="628" y2="195"/>
+    <line x1="755" y1="195" x2="768" y2="195"/>
+    <line x1="895" y1="195" x2="908" y2="195"/>
+    <line x1="1035" y1="195" x2="1048" y2="195"/>
+  </g>
+
+  <!-- lanes -->
+  <g class="mono" font-size="11.5" letter-spacing="1">
+    <line x1="40" y1="306" x2="1035" y2="306" stroke="#62c073" stroke-opacity=".7"/>
+    <line x1="40" y1="300" x2="40" y2="312" stroke="#62c073" stroke-opacity=".7"/>
+    <line x1="1035" y1="300" x2="1035" y2="312" stroke="#62c073" stroke-opacity=".7"/>
+    <text x="40" y="334" fill="#62c073">DETERMINISTIC AND REPLAYABLE · NO MODEL IN THE DECISION PATH</text>
+    <line x1="1050" y1="306" x2="1160" y2="306" stroke="#8a8a8a" stroke-dasharray="3 3"/>
+    <text x="1160" y="334" fill="#8a8a8a" text-anchor="end">LLM REWRITES ONLY</text>
+  </g>
+  <text x="40" y="372" class="sans" font-size="13" fill="#7a7a7a">If the LLM is unreachable, every decision still happens. The explanation falls back to a template built from the same evidence.</text>
+</svg>
