@@ -1,6 +1,6 @@
 # Antibody
 
-[![tests](https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml/badge.svg)](https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml) ![python](https://img.shields.io/badge/python-3.11%2B-52a8ff) ![license](https://img.shields.io/badge/license-MIT-62c073)
+[![tests](https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml/badge.svg)](https://github.com/victorisaacchinta-eng/antibody/actions/workflows/tests.yml) [![python](https://img.shields.io/badge/python-3.11%2B-52a8ff)](https://www.python.org/) [![license](https://img.shields.io/badge/license-MIT-62c073)](LICENSE)
 
 > Finds the one event that actually caused the failure, out of thousands.
 
