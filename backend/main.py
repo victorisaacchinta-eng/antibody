@@ -190,6 +190,8 @@ class Actor(BaseModel):
 @app.post("/api/incidents/{iid}/ack")
 def ack(iid: int, a: Actor):
     with lock:
+        if not engine.get(iid):
+            raise HTTPException(404, "no such incident")
         return {"ok": engine.ack(iid, a.by)}
 
 
@@ -217,6 +219,8 @@ def remediate(iid: int, r: Remediation):
 @app.post("/api/incidents/{iid}/resolve")
 def resolve(iid: int, a: Actor):
     with lock:
+        if not engine.get(iid):
+            raise HTTPException(404, "no such incident")
         return {"ok": engine.resolve(iid, a.by, a.note)}
 
 

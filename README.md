@@ -95,7 +95,7 @@ export LLM_API_KEY=... LLM_MODEL=llama-3.3-70b-versatile
 
 **Benchmark from the terminal:** `cd backend && python bench.py`. Takes about 7 seconds.
 
-**Tests:** `pip install pytest && cd backend && python -m pytest -q`. Thirteen checks, including: a database crash is ranked first with HIGH confidence, a bad deploy is recognised and rolled back, a repeat failure is recalled from memory, healthy traffic raises no incidents, the engine never reads the simulator's ground truth, and the plain-English explanation falls back to a template when no LLM is available. GitHub Actions runs them and the benchmark on every push.
+**Tests:** `pip install pytest && cd backend && python -m pytest -q`. Sixteen checks, including: a database crash is ranked first with HIGH confidence, a bad deploy is recognised and rolled back, a repeat failure is recalled from memory, healthy traffic raises no incidents, the engine never reads the simulator's ground truth, and the plain-English explanation falls back to a template when no LLM is available. GitHub Actions runs them and the benchmark on every push.
 
 ## API load testing (authenticated)
 
