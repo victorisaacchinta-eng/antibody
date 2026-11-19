@@ -12,8 +12,9 @@ import json
 import threading
 import time
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
@@ -270,8 +271,13 @@ def set_config(c: Cfg):
 
 @app.post("/api/benchmark/run")
 def run_benchmark():
-    if not bench_cache["running"]:
-        threading.Thread(target=_run_bench, daemon=True).start()
+    # claim the flag here, not in the thread, so a second click before the thread
+    # starts cannot launch another run
+    with lock:
+        if bench_cache["running"]:
+            return {"started": True}
+        bench_cache["running"] = True
+    threading.Thread(target=_run_bench, daemon=True).start()
     return {"started": True}
 
 
@@ -299,7 +305,7 @@ async def ws(websocket: WebSocket):
 
 
 @app.get("/api/traces")
-def list_traces(limit: int = 30):
+def list_traces(limit: Annotated[int, Query(ge=1, le=80)] = 30):   # engine keeps the last 80
     with lock:
         out = []
         for tid in list(engine.trace_ids)[-limit:][::-1]:
