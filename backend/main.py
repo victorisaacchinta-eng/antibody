@@ -14,8 +14,10 @@ import time
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 import bench
@@ -234,14 +236,23 @@ def explain(iid: int):
 
 
 class Event(BaseModel):
-    ts: float | None = None
+    ts: float | None = Field(None, allow_inf_nan=False)
     service: str = Field(..., max_length=64)
     kind: str = Field(..., pattern="^(metric|log|trace|event)$")
     name: str = Field("log", max_length=64)
-    value: float | None = None
+    value: float | None = Field(None, allow_inf_nan=False)
     level: str | None = Field(None, max_length=8)
     message: str | None = Field(None, max_length=2000)
     labels: dict = Field(default_factory=dict)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, exc: RequestValidationError):
+    """FastAPI's default 422, minus the echoed input on finite_number errors: a NaN input
+    cannot be written as JSON, so the default handler would turn the 422 into a 500."""
+    errors = [{k: v for k, v in e.items() if not (k == "input" and e["type"] == "finite_number")}
+              for e in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
 
 
 @app.post("/api/ingest")
